@@ -14,15 +14,57 @@ class ViewController: UIViewController, UITableViewDataSource {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         tableView.dataSource = self
+        
         fetchPosts()
-
+        
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        let backButton = UIBarButtonItem()
+        backButton.title = "Blog Post"
+        backButton.tintColor = UIColor.systemPink
+            navigationItem.backBarButtonItem = backButton
+        
+        if let navigationController = navigationController {
+            navigationController.navigationBar.prefersLargeTitles = true
+            navigationController.navigationBar.largeTitleTextAttributes = [
+                NSAttributedString.Key.foregroundColor: UIColor.darkText]
+        }
+       
+     
+          
     }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        if let selectedIndexPath = tableView.indexPathForSelectedRow {
+
+            // Deselect the currently selected row
+            tableView.deselectRow(at: selectedIndexPath, animated: animated)
+        }
+        
+    }
+        
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let selectedIndexPath = tableView.indexPathForSelectedRow else { return }
+
+        // Get the selected movie from the movies array using the selected index path's row
+        let selectedPosts = posts[selectedIndexPath.row]
+
+        // Get access to the detail view controller via the segue's destination. (guard to unwrap the optional)
+        guard let detailViewController = segue.destination as? DetailViewController else { return }
+
+        detailViewController.post = selectedPosts
+    }
+    
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return posts.count
     }
+    
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell", for: indexPath) as! PostCell
@@ -31,10 +73,20 @@ class ViewController: UIViewController, UITableViewDataSource {
 
         cell.summaryLabel.text = post.summary
 
+        cell.summaryLabel.font = UIFont.boldSystemFont(ofSize: 16.0) 
+        cell.summaryLabel.textColor = UIColor.darkGray
+        
+        cell.postImageView.layer.borderWidth = 1.0
+        cell.postImageView.layer.borderColor = UIColor.gray.cgColor
+        
+        cell.postImageView.layer.cornerRadius = 10
+        cell.postImageView.clipsToBounds = true
+       
         if let photo = post.photos.first {
             let url = photo.originalSize.url
             Nuke.loadImage(with: url, into: cell.postImageView)
         }
+        
 
         return cell
     }
